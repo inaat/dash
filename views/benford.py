@@ -1,3 +1,4 @@
+
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
@@ -27,9 +28,168 @@ import base64
 import io
 import plotly.graph_objs as go
 
+# import dash
+# import dash_table
+# import pandas as pd
+
+# df = pd.DataFrame({
+#   'student_id' : range(1, 11),
+#   'score' : [1, 5, 2, 5, 2, 3, 1, 5, 1, 5]
+# })
+
+# layout = dash_table.DataTable(
+#     id='table',
+#     columns=[{"name": i, "id": i} for i in df.columns],
+#     data=df.to_dict('records'),
+# )
+
+# import dash
+# import dash_html_components as html
+
+# from dash.dependencies import Input, Output, State
+# from dash_table import DataTable
+
+# import pandas as pd
+
+# url = "https://github.com/plotly/datasets/raw/master/" "26k-consumer-complaints.csv"
+# df = pd.read_csv(url)
+
+# columns = [
+#     {"id": 0, "name": "Complaint ID"},
+#     {"id": 1, "name": "Product"},
+#     {"id": 2, "name": "Sub-product"},
+#     {"id": 3, "name": "Issue"},
+#     {"id": 4, "name": "Sub-issue"},
+#     {"id": 5, "name": "State"},
+#     {"id": 6, "name": "ZIP"},
+#     {"id": 7, "name": "code"},
+#     {"id": 8, "name": "Date received"},
+#     {"id": 9, "name": "Date sent to company"},
+#     {"id": 10, "name": "Company"},
+#     {"id": 11, "name": "Company response"},
+#     {"id": 12, "name": "Timely response?"},
+#     {"id": 13, "name": "Consumer disputed?"},
+# ]
+
+# layout = html.Div([
+#     html.Button(
+#         ['Update'],
+#         id='btn'
+#     ),
+#     DataTable(
+#         id='table',
+#         data=[]
+#     )
+# ])
+
+# @app.callback(
+#     [Output("table", "data"), Output('table', 'columns')],
+#     [Input("btn", "n_clicks")]
+# )
+# def updateTable(n_clicks):
+#     if n_clicks is None:
+#         return df.values[0:100], columns
+
+#     return df.values[100:110], columns[0:3]
+
+
+
+
+
+import dash
+import dash_core_components as dcc
+import dash_table as dt
+import dash_html_components as html
+
+from dash.dependencies import Output, Input
+from dash.exceptions import PreventUpdate
+
+import plotly.graph_objs as go
 
 x = np.arange(1, 10)
 benford = np.log10(1 + 1 / x)
+
+
+
+layout = html.Div([
+    html.H1('Deep Fake Detection'),
+     dcc.Upload(
+        id="upload-data",
+        children=html.Div(["Drag and Drop or ", html.A("Select Files")]),
+        style={
+            "width": "100%",
+            "height": "60px",
+            "lineHeight": "60px",
+            "borderWidth": "1px",
+            "borderStyle": "dashed",
+            "borderRadius": "5px",
+            "textAlign": "center",
+            "margin": "10px",
+        },
+        # Allow multiple files to be uploaded
+        multiple=True,
+    ),
+    html.Div([
+        dcc.Graph(id='graph'),
+        html.H3('Deep Fake Detection Data Table'),
+        dt.DataTable(id='data-table')
+    ])
+], id='container')
+
+
+@app.callback([
+    Output('graph', 'figure'),
+    Output('data-table', 'data'),
+    Output('data-table', 'columns'),
+    Output('container', 'style')
+], [
+    Input('upload-data', 'contents'),
+    Input('upload-data', 'filename')])
+def multi_output(contents, filename):
+   
+    x = []
+    y = []
+    z=[]
+    data = []
+    columns=[]
+    if contents:
+        contents = contents[0]
+        filename = filename[0]
+        ima = parse_data(contents, filename)
+        image = cv2.imread(ima)    
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        first_digits = compute_first_digits(img)
+        unq, counts = np.unique(first_digits, return_counts=True)
+        tot = counts.sum()
+        counts = counts / tot
+        df = pd.DataFrame()
+        df['Picture Value'] = counts
+        df['Benford Frequency'] = benford
+        df['Unique'] = unq
+        x=unq
+        y=counts
+        z=benford
+        columns=[
+            {'name': 'Picture Value', 'id': 'Picture Value'},
+            {'name': 'Benford Frequency', 'id': 'Benford Frequency'},
+            {'name': 'Unique', 'id': 'Unique'}
+        ]
+        data=df.to_dict('records')
+
+       
+    figure = go.Figure()
+    figure.add_trace(go.Line(x=x, y=y,
+                    mode='lines+markers',
+                    name=u'Picture Curve'
+                    ))
+   
+    figure.add_trace(go.Line(x=x, y=z,
+                    mode='lines+markers',
+                    name=u'Benford Curve'
+                    ))
+
+    return figure, data, columns, {'display': 'block'}
+
 
 
 def compute_first_digits(img, normalise=False, debug_dct=False):
@@ -65,94 +225,6 @@ def compute_first_digits(img, normalise=False, debug_dct=False):
         raise ValueError("Error")
 
     return first_digits
-
-
-
-
-colors = {"graphBackground": "#F5F5F5", "background": "#ffffff", "text": "#000000"}
-
-
-layout = html.Div(style={'backgroundColor': colors['background']},
-                  children=[
-    html.H1(children="Deep Fake Detection",
-            style={
-                'textAlign': 'center',
-                'color': colors['text']
-            }),
-    dcc.Upload(
-        id="upload-data",
-        children=html.Div(["Drag and Drop or ", html.A("Select Files")]),
-        style={
-            "width": "100%",
-            "height": "60px",
-            "lineHeight": "60px",
-            "borderWidth": "1px",
-            "borderStyle": "dashed",
-            "borderRadius": "5px",
-            "textAlign": "center",
-            "margin": "10px",
-        },
-        # Allow multiple files to be uploaded
-        multiple=True,
-    ),
-    dcc.Graph(id="Mygraph"),
-    html.Div(id="output-data-upload"),
-
-])
-
-
-@app.callback(Output('Mygraph', 'figure'), [
-    Input('upload-data', 'contents'),
-    Input('upload-data', 'filename')
-])
-def update_graph(contents, filename):
-    x = []
-    y = []
-    z=[]
-    if contents:
-        contents = contents[0]
-        filename = filename[0]
-        ima = parse_data(contents, filename)
-        image = cv2.imread(ima)
-
-        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        first_digits = compute_first_digits(img)
-        unq, counts = np.unique(first_digits, return_counts=True)
-        tot = counts.sum()
-        counts = counts / tot
-        data = []
-        df = pd.DataFrame(data)
-        df['Picture Value'] = counts
-        df['Benford Frequency'] = benford
-        df['Unique'] = unq
-
-        print(df)
-        x=unq
-        y=counts
-        z=benford
-
-
-    
-    fig = go.Figure(
-        layout=go.Layout(
-            plot_bgcolor=colors["graphBackground"],
-            paper_bgcolor=colors["graphBackground"]
-        )
-    )
-
-   # Add traces
-    fig.add_trace(go.Line(x=x, y=y,
-                    mode='lines+markers',
-                    name=u'Picture Curve'
-                    ))
-   
-    fig.add_trace(go.Line(x=x, y=z,
-                    mode='lines+markers',
-                    name=u'Benford Curve'
-                    ))
-    return fig
-
-
 
 
 def parse_data(contents, filename):

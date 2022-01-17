@@ -54,7 +54,7 @@ def sucess(n_clicks, n_submit_uname, n_submit_pwd, input1, input2):
     if user:
         if check_password_hash(user.password, input2):
             login_user(user)
-            return '/success'
+            return '/benford'
         else:
             pass
     else:

@@ -64,7 +64,8 @@ def display_page(pathname):
     elif pathname == '/login':
         return login.layout
     elif pathname == '/benford':
-        return benford.layout
+        if current_user.is_authenticated:
+            return benford.layout
     elif pathname == '/success':
         if current_user.is_authenticated:
             return success.layout
