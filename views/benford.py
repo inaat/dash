@@ -28,70 +28,6 @@ import base64
 import io
 import plotly.graph_objs as go
 
-# import dash
-# import dash_table
-# import pandas as pd
-
-# df = pd.DataFrame({
-#   'student_id' : range(1, 11),
-#   'score' : [1, 5, 2, 5, 2, 3, 1, 5, 1, 5]
-# })
-
-# layout = dash_table.DataTable(
-#     id='table',
-#     columns=[{"name": i, "id": i} for i in df.columns],
-#     data=df.to_dict('records'),
-# )
-
-# import dash
-# import dash_html_components as html
-
-# from dash.dependencies import Input, Output, State
-# from dash_table import DataTable
-
-# import pandas as pd
-
-# url = "https://github.com/plotly/datasets/raw/master/" "26k-consumer-complaints.csv"
-# df = pd.read_csv(url)
-
-# columns = [
-#     {"id": 0, "name": "Complaint ID"},
-#     {"id": 1, "name": "Product"},
-#     {"id": 2, "name": "Sub-product"},
-#     {"id": 3, "name": "Issue"},
-#     {"id": 4, "name": "Sub-issue"},
-#     {"id": 5, "name": "State"},
-#     {"id": 6, "name": "ZIP"},
-#     {"id": 7, "name": "code"},
-#     {"id": 8, "name": "Date received"},
-#     {"id": 9, "name": "Date sent to company"},
-#     {"id": 10, "name": "Company"},
-#     {"id": 11, "name": "Company response"},
-#     {"id": 12, "name": "Timely response?"},
-#     {"id": 13, "name": "Consumer disputed?"},
-# ]
-
-# layout = html.Div([
-#     html.Button(
-#         ['Update'],
-#         id='btn'
-#     ),
-#     DataTable(
-#         id='table',
-#         data=[]
-#     )
-# ])
-
-# @app.callback(
-#     [Output("table", "data"), Output('table', 'columns')],
-#     [Input("btn", "n_clicks")]
-# )
-# def updateTable(n_clicks):
-#     if n_clicks is None:
-#         return df.values[0:100], columns
-
-#     return df.values[100:110], columns[0:3]
-
 
 
 
@@ -163,16 +99,19 @@ def multi_output(contents, filename):
         tot = counts.sum()
         counts = counts / tot
         df = pd.DataFrame()
+        difference = np.abs(benford - counts)
         df['Picture Value'] = counts
         df['Benford Frequency'] = benford
         df['Unique'] = unq
+        df['Difference'] = difference
         x=unq
         y=counts
         z=benford
         columns=[
+            {'name': 'Unique', 'id': 'Unique'},
             {'name': 'Picture Value', 'id': 'Picture Value'},
             {'name': 'Benford Frequency', 'id': 'Benford Frequency'},
-            {'name': 'Unique', 'id': 'Unique'}
+            {'name': 'Difference', 'id': 'Difference'}
         ]
         data=df.to_dict('records')
 
